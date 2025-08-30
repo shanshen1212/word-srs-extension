@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生词本 - 划词翻译+间隔复习</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <!-- 导航栏 -->
+        <nav class="nav-bar">
+            <button class="nav-btn active" data-view="review">
+                今日复习 <span class="badge" id="review-count">0</span>
+            </button>
+            <button class="nav-btn" data-view="words">
+                全部单词 <span class="badge" id="total-count">0</span>
+            </button>
+        </nav>
+
+        <!-- 今日复习视图 -->
+        <div class="view" id="review-view">
+            <div class="review-container">
+                <!-- 复习进度 -->
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                    <span class="progress-text" id="progress-text">0 / 0</span>
+                </div>
+
+                <!-- 复习卡片 -->
+                <div class="card-container" id="card-container">
+                    <!-- 空状态 -->
+                    <div class="empty-state" id="empty-review">
+                        <div class="empty-icon">📚</div>
+                        <h3>今日复习已完成！</h3>
+                        <p>没有需要复习的单词，继续保持学习节奏。</p>
+                    </div>
+
+                    <!-- 复习卡片 -->
+                    <div class="review-card hidden" id="review-card">
+                        <div class="card-front">
+                            <div class="word-display">
+                                <span class="word-term" id="word-term"></span>
+                                <span class="word-lang" id="word-lang"></span>
+                            </div>
+                            <div class="word-meta">
+                                <span class="word-source" id="word-source"></span>
+                            </div>
+                        </div>
+
+                        <div class="card-back hidden" id="card-back">
+                            <div class="word-context">
+                                <h4>上下文</h4>
+                                <p id="word-context"></p>
+                            </div>
+                            <div class="word-note" id="word-note-container">
+                                <h4>备注</h4>
+                                <p id="word-note"></p>
+                            </div>
+                        </div>
+
+                        <div class="card-actions">
+                            <button class="action-btn show-answer" id="show-answer">显示答案</button>
+                            <div class="rating-buttons hidden" id="rating-buttons">
+                                <button class="rating-btn again" data-rating="0">Again</button>
+                                <button class="rating-btn hard" data-rating="3">Hard</button>
+                                <button class="rating-btn good" data-rating="4">Good</button>
+                                <button class="rating-btn easy" data-rating="5">Easy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 复习完成 -->
+                    <div class="review-complete hidden" id="review-complete">
+                        <div class="complete-icon">🎉</div>
+                        <h3>今日复习完成！</h3>
+                        <p id="review-summary">复习了 0 个单词</p>
+                        <button class="btn-primary" id="continue-learning">继续学习</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 全部单词视图 -->
+        <div class="view hidden" id="words-view">
+            <div class="words-header">
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="搜索单词..." class="search-input">
+                    <button class="search-clear" id="search-clear">×</button>
+                </div>
+                <div class="words-stats">
+                    <span id="words-stats-text">共 0 个单词</span>
+                </div>
+            </div>
+
+            <div class="words-list" id="words-list">
+                <!-- 单词列表将通过 JS 动态生成 -->
+            </div>
+
+            <div class="empty-state hidden" id="empty-words">
+                <div class="empty-icon">📝</div>
+                <h3>还没有保存任何单词</h3>
+                <p>在网页上选择文字，点击保存按钮开始构建你的生词本。</p>
+            </div>
+        </div>
+
+        <!-- 加载状态 -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

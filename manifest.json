@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "划词翻译 + 间隔复习",
+  "version": "1.0.0",
+  "description": "选中单词保存到生词本，使用间隔复习巩固记忆",
+  
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "activeTab",
+    "notifications",
+    "alarms"
+  ],
+  
+  "host_permissions": [
+    "https://api.mymemory.translated.net/*"
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "划词翻译 + 间隔复习",
+    "default_icon": {
+      "16": "assets/icons/icon-16.png",
+      "32": "assets/icons/icon-32.png",
+      "48": "assets/icons/icon-48.png",
+      "128": "assets/icons/icon-128.png"
+    }
+  },
+  
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "32": "assets/icons/icon-32.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  
+  "commands": {
+    "save-selection": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "保存选中文本到生词本"
+    }
+  }
+}
