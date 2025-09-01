@@ -149,7 +149,140 @@ class PopupApp {
       console.error('PopupApp init 失败:', error);
     }
   }
+
+  // 导出功能实现
+  exportAsJson() {
+    try {
+      if (!this.allWords.length) {
+        this.showError('没有单词可导出');
+        return;
+      }
+      
+      const jsonData = JSON.stringify(this.allWords, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      
+      const now = new Date();
+      const dateStr = now.getFullYear() + '-' + 
+                     String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                     String(now.getDate()).padStart(2, '0');
+      const filename = `wordbook_${dateStr}.json`;
+      
+      this.downloadFile(blob, filename);
+      this.showSuccess(`已导出 ${this.allWords.length} 个单词为JSON格式`);
+      
+    } catch (error) {
+      console.error('Export JSON failed:', error);
+      this.showError('导出JSON失败: ' + error.message);
+    }
+  }
+
+  // 导出为CSV格式
+  exportAsCsv() {
+    try {
+      if (!this.allWords.length) {
+        this.showError('没有单词可导出');
+        return;
+      }
+      
+      // CSV头部字段
+      const headers = [
+        'id', 'term', 'lang', 'note', 'definition', 'phonetic', 
+        'examples', 'context', 'sourceUrl', 'addedAt', 'nextReview', 
+        'interval', 'ease', 'reps', 'lapses', 'tags'
+      ];
+      
+      // 构建CSV内容
+      const csvRows = [headers.join(',')];
+      
+      this.allWords.forEach(word => {
+        const row = [
+          this.escapeCsvField(word.id || ''),
+          this.escapeCsvField(word.term || ''),
+          this.escapeCsvField(word.lang || ''),
+          this.escapeCsvField(word.note || ''),
+          this.escapeCsvField(word.definition || ''),
+          this.escapeCsvField(word.phonetic || ''),
+          this.escapeCsvField(this.arrayToString(word.examples)),
+          this.escapeCsvField(word.context || ''),
+          this.escapeCsvField(word.sourceUrl || ''),
+          word.addedAt || '',
+          word.nextReview || '',
+          word.interval || 0,
+          word.ease || 2.5,
+          word.reps || 0,
+          word.lapses || 0,
+          this.escapeCsvField(this.arrayToString(word.tags))
+        ];
+        csvRows.push(row.join(','));
+      });
+      
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      const now = new Date();
+      const dateStr = now.getFullYear() + '-' + 
+                     String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                     String(now.getDate()).padStart(2, '0');
+      const filename = `wordbook_${dateStr}.csv`;
+      
+      this.downloadFile(blob, filename);
+      this.showSuccess(`已导出 ${this.allWords.length} 个单词为CSV格式`);
+      
+    } catch (error) {
+      console.error('Export CSV failed:', error);
+      this.showError('导出CSV失败: ' + error.message);
+    }
+  }
   
+  // CSV字段转义处理
+  escapeCsvField(field) {
+    if (field === null || field === undefined) {
+      return '';
+    }
+    
+    let str = String(field);
+    
+    // 替换换行符为 \n
+    str = str.replace(/\r\n/g, '\\n').replace(/[\r\n]/g, '\\n');
+    
+    // 转义引号：" 变成 ""
+    str = str.replace(/"/g, '""');
+    
+    // 如果包含逗号、引号或换行符，需要用引号包围
+    if (str.includes(',') || str.includes('"') || str.includes('\\n')) {
+      str = '"' + str + '"';
+    }
+    
+    return str;
+  }
+  
+  
+  // 数组转字符串（用|分隔）
+  arrayToString(arr) {
+    if (!arr || !Array.isArray(arr)) {
+      return '';
+    }
+    return arr.join('|');
+  }
+  
+  // 通用文件下载方法
+  downloadFile(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    
+    document.body.appendChild(a);
+    a.click();
+    
+    // 清理
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  }
+
   bindEvents() {
     console.log('绑定事件开始');
     
@@ -199,6 +332,40 @@ class PopupApp {
           this.filterWords('');
           searchInput.focus();
         }
+      });
+    }
+    
+    // 导出功能相关事件
+    const exportBtn = document.getElementById('export-btn');
+    const exportMenu = document.getElementById('export-menu');
+    const exportJson = document.getElementById('export-json');
+    const exportCsv = document.getElementById('export-csv');
+    
+    if (exportBtn && exportMenu) {
+      exportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportMenu.classList.toggle('hidden');
+      });
+      
+      // 点击外部关闭菜单
+      document.addEventListener('click', (e) => {
+        if (!exportMenu.contains(e.target) && !exportBtn.contains(e.target)) {
+          exportMenu.classList.add('hidden');
+        }
+      });
+    }
+    
+    if (exportJson) {
+      exportJson.addEventListener('click', () => {
+        this.exportAsJson();
+        exportMenu.classList.add('hidden');
+      });
+    }
+    
+    if (exportCsv) {
+      exportCsv.addEventListener('click', () => {
+        this.exportAsCsv();
+        exportMenu.classList.add('hidden');
       });
     }
     

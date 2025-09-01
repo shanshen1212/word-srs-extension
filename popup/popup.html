@@ -150,8 +150,15 @@
                     <input type="text" id="search-input" placeholder="搜索单词..." class="search-input">
                     <button class="search-clear" id="search-clear">×</button>
                 </div>
-                <div class="words-stats">
+                <div class="words-stats-row">
                     <span id="words-stats-text">共 0 个单词</span>
+                    <div class="export-container">
+                        <button class="export-btn" id="export-btn">导出</button>
+                        <div class="export-menu hidden" id="export-menu">
+                            <button class="export-option" id="export-json">导出为JSON</button>
+                            <button class="export-option" id="export-csv">导出为CSV</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
