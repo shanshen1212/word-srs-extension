@@ -1,3 +1,7 @@
+[English](#en) | [中文](#zh)
+
+<a id="en"></a>
+
 # Word SRS — Minimal English Vocabulary Saver & Reviewer
 
 > **Highlight**  
@@ -62,8 +66,7 @@ Please keep the original licenses in your distributions.
 
 ---
 
-
----
+<a id="zh"></a>
 
 # Word SRS — 极简英文生词保存与复习扩展（中文）
 
