@@ -1,7 +1,118 @@
-// popup script: review flow + words management
-// 管理复习状态、单词列表和用户交互
+// popup script: review flow + words management + speech synthesis
+// 管理复习状态、单词列表、用户交互和发音功能
 
 console.log('popup.js 开始加载');
+
+// 发音管理类
+class SpeechManager {
+  constructor() {
+    this.isSupported = 'speechSynthesis' in window;
+    this.isSpeaking = false;
+    this.currentUtterance = null;
+    this.voices = [];
+    
+    if (this.isSupported) {
+      this.loadVoices();
+      // 监听语音列表变化（某些浏览器需要异步加载）
+      speechSynthesis.onvoiceschanged = () => {
+        this.loadVoices();
+      };
+    }
+  }
+  
+  loadVoices() {
+    this.voices = speechSynthesis.getVoices();
+    console.log('可用语音数量:', this.voices.length);
+  }
+  
+  // 获取最适合的语音
+  getBestVoice(lang) {
+    if (!this.voices.length) {
+      this.loadVoices();
+    }
+    
+    // 优先级：完全匹配 > 语言匹配 > 默认
+    const exactMatch = this.voices.find(voice => 
+      voice.lang === lang && voice.localService
+    );
+    if (exactMatch) return exactMatch;
+    
+    const langMatch = this.voices.find(voice => 
+      voice.lang.startsWith(lang.split('-')[0]) && voice.localService
+    );
+    if (langMatch) return langMatch;
+    
+    // 对于英文，尝试找美式或英式英语
+    if (lang.startsWith('en')) {
+      const enVoice = this.voices.find(voice => 
+        (voice.lang.includes('en-US') || voice.lang.includes('en-GB')) && voice.localService
+      );
+      if (enVoice) return enVoice;
+    }
+    
+    // 默认使用第一个本地语音
+    return this.voices.find(voice => voice.localService) || this.voices[0];
+  }
+  
+  // 发音文本
+  speak(text, lang = 'en-US') {
+    if (!this.isSupported) {
+      console.warn('Speech synthesis not supported');
+      return Promise.reject(new Error('语音合成不受支持'));
+    }
+    
+    // 如果正在播放，先停止
+    if (this.isSpeaking) {
+      this.stop();
+    }
+    
+    return new Promise((resolve, reject) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // 设置语音参数
+      const voice = this.getBestVoice(lang);
+      if (voice) {
+        utterance.voice = voice;
+      }
+      
+      utterance.lang = lang;
+      utterance.rate = 0.8; // 稍微慢一点，便于学习
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      // 事件监听
+      utterance.onstart = () => {
+        this.isSpeaking = true;
+        this.currentUtterance = utterance;
+        resolve();
+      };
+      
+      utterance.onend = () => {
+        this.isSpeaking = false;
+        this.currentUtterance = null;
+      };
+      
+      utterance.onerror = (event) => {
+        this.isSpeaking = false;
+        this.currentUtterance = null;
+        console.error('Speech error:', event.error);
+        reject(new Error(`发音失败: ${event.error}`));
+      };
+      
+      // 开始播放
+      speechSynthesis.speak(utterance);
+    });
+  }
+  
+  // 停止发音
+  stop() {
+    if (this.isSupported && this.isSpeaking) {
+      speechSynthesis.cancel();
+      this.isSpeaking = false;
+      this.currentUtterance = null;
+    }
+  }
+}
 
 class PopupApp {
   constructor() {
@@ -13,6 +124,9 @@ class PopupApp {
     this.allWords = [];
     this.filteredWords = [];
     this.isShowingAnswer = false;
+    
+    // 初始化发音管理器
+    this.speechManager = new SpeechManager();
     
     this.init();
   }
@@ -250,17 +364,10 @@ class PopupApp {
     this.hideElement(document.getElementById('rating-buttons'));
     this.showElement(document.getElementById('show-answer'));
     
-    // 更新卡片内容
-    const wordTermEl = document.getElementById('word-term');
-    const wordLangEl = document.getElementById('word-lang');
-    const wordSourceEl = document.getElementById('word-source');
-    const wordContextEl = document.getElementById('word-context');
+    // 更新卡片内容 - 重构单词显示区域
+    this.updateWordHeader(word);
     
-    if (wordTermEl) wordTermEl.textContent = word.term;
-    if (wordLangEl) wordLangEl.textContent = word.lang.toUpperCase();
-    if (wordSourceEl) wordSourceEl.textContent = this.formatSourceUrl(word.sourceUrl);
-    if (wordContextEl) wordContextEl.textContent = word.context || '无上下文';
-    
+    // 更新翻译
     const noteContainer = document.getElementById('word-note-container');
     const noteElement = document.getElementById('word-note');
     if (word.note && word.note.trim()) {
@@ -268,6 +375,101 @@ class PopupApp {
       this.showElement(noteContainer);
     } else {
       this.hideElement(noteContainer);
+    }
+    
+    // 更新释义
+    const definitionContainer = document.getElementById('word-definition-container');
+    const definitionElement = document.getElementById('word-definition');
+    if (word.definition && word.definition.trim()) {
+      if (definitionElement) definitionElement.textContent = word.definition;
+      this.showElement(definitionContainer);
+    } else {
+      this.hideElement(definitionContainer);
+    }
+    
+    // 更新例句
+    const examplesContainer = document.getElementById('word-examples-container');
+    const examplesElement = document.getElementById('word-examples');
+    if (word.examples && word.examples.length > 0) {
+      if (examplesElement) {
+        examplesElement.innerHTML = '';
+        word.examples.forEach(example => {
+          const exampleDiv = document.createElement('div');
+          exampleDiv.className = 'example-item';
+          exampleDiv.textContent = example;
+          examplesElement.appendChild(exampleDiv);
+        });
+      }
+      this.showElement(examplesContainer);
+    } else {
+      this.hideElement(examplesContainer);
+    }
+    
+    // 更新音标
+    const phoneticContainer = document.getElementById('word-phonetic-container');
+    const phoneticElement = document.getElementById('word-phonetic');
+    if (word.phonetic && word.phonetic.trim()) {
+      if (phoneticElement) phoneticElement.textContent = word.phonetic;
+      this.showElement(phoneticContainer);
+    } else {
+      this.hideElement(phoneticContainer);
+    }
+  }
+  
+  // 更新单词头部显示（包含发音按钮）
+  updateWordHeader(word) {
+    const wordDisplay = document.querySelector('.word-display');
+    if (!wordDisplay) return;
+    
+    // 清空并重新构建
+    wordDisplay.innerHTML = `
+      <div class="word-header">
+        <span class="word-term">${this.escapeHtml(word.term)}</span>
+        <button class="speech-btn" title="点击发音">🔊</button>
+      </div>
+      <span class="word-lang">${word.lang.toUpperCase()}</span>
+    `;
+    
+    // 绑定发音事件
+    const speechBtn = wordDisplay.querySelector('.speech-btn');
+    if (speechBtn) {
+      speechBtn.addEventListener('click', async () => {
+        await this.speakWord(word, speechBtn);
+      });
+    }
+  }
+  
+  // 发音单词的核心方法
+  async speakWord(word, buttonElement = null) {
+    if (!this.speechManager.isSupported) {
+      this.showError('您的浏览器不支持语音合成功能');
+      return;
+    }
+    
+    try {
+      // 更新按钮状态
+      if (buttonElement) {
+        buttonElement.classList.add('speaking');
+        buttonElement.disabled = true;
+      }
+      
+      // 确定语言
+      const lang = word.lang === 'zh' ? 'zh-CN' : 'en-US';
+      
+      // 发音
+      await this.speechManager.speak(word.term, lang);
+      
+      console.log(`Pronunciation played for: ${word.term}`);
+      
+    } catch (error) {
+      console.error('Speech failed:', error);
+      this.showError('发音失败: ' + error.message);
+    } finally {
+      // 恢复按钮状态
+      if (buttonElement) {
+        buttonElement.classList.remove('speaking');
+        buttonElement.disabled = false;
+      }
     }
   }
   
@@ -347,7 +549,6 @@ class PopupApp {
     } else {
       this.filteredWords = this.allWords.filter(word => 
         word.term.toLowerCase().includes(lowerQuery) ||
-        (word.context && word.context.toLowerCase().includes(lowerQuery)) ||
         (word.note && word.note.toLowerCase().includes(lowerQuery))
       );
     }
@@ -405,12 +606,29 @@ class PopupApp {
   createWordElement(word) {
     const div = document.createElement('div');
     div.className = 'word-item';
+    
+    // 构建例句显示
+    let examplesHtml = '';
+    if (word.examples && word.examples.length > 0) {
+      examplesHtml = `
+        <div class="word-item-examples">
+          <strong>例句:</strong> ${this.escapeHtml(word.examples[0])}
+          ${word.examples.length > 1 ? `<span class="more-examples">(+${word.examples.length - 1})</span>` : ''}
+        </div>
+      `;
+    }
+    
+    // 构建完整HTML
     div.innerHTML = `
       <div class="word-item-header">
         <span class="word-item-term">${this.escapeHtml(word.term)}</span>
-        <span class="word-item-lang">${word.lang.toUpperCase()}</span>
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <button class="speech-btn" title="点击发音">🔊</button>
+          <span class="word-item-lang">${word.lang.toUpperCase()}</span>
+        </div>
       </div>
-      <div class="word-item-context">${this.escapeHtml(word.context || '无上下文')}</div>
+      <div class="word-item-translation">${this.escapeHtml(word.note || '暂无翻译')}</div>
+      ${examplesHtml}
       <div class="word-item-meta">
         <span class="word-item-date">${this.formatDate(word.addedAt)}</span>
         <div class="word-item-actions">
@@ -420,22 +638,30 @@ class PopupApp {
       </div>
     `;
     
-    // 绑定事件
-    div.querySelector('.edit').addEventListener('click', () => {
-      this.editWordNote(word);
-    });
+    // 绑定发音事件
+    const speechBtn = div.querySelector('.speech-btn');
+    if (speechBtn) {
+      speechBtn.addEventListener('click', async (e) => {
+        e.stopPropagation(); // 防止触发单词项的点击事件
+        await this.speakWord(word, speechBtn);
+      });
+    }
     
-    div.querySelector('.delete').addEventListener('click', () => {
-      this.deleteWord(word);
-    });
+    // 绑定编辑和删除事件
+    const editBtn = div.querySelector('.edit');
+    const deleteBtn = div.querySelector('.delete');
     
-    // 点击源URL
-    if (word.sourceUrl) {
-      div.style.cursor = 'pointer';
-      div.addEventListener('click', (e) => {
-        if (!(e.target.closest && e.target.closest('.word-action-btn'))) {
-          chrome.tabs.create({ url: word.sourceUrl });
-        }
+    if (editBtn) {
+      editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.editWordNote(word);
+      });
+    }
+    
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.deleteWord(word);
       });
     }
     

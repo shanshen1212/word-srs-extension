@@ -13,7 +13,8 @@
   ],
   
   "host_permissions": [
-    "https://api.mymemory.translated.net/*"
+    "https://api.mymemory.translated.net/*",
+    "https://api.dictionaryapi.dev/*"
   ],
   
   "background": {
@@ -22,17 +23,18 @@
   
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content/content.js"],
-      "run_at": "document_end"
+      "matches": ["https://example.invalid/*"],
+      "js": ["content/content.js"]
     }
   ],
+
+
   
   "action": {
     "default_popup": "popup/popup.html",
     "default_title": "划词翻译 + 间隔复习",
     "default_icon": {
-      "16": "assets/icons/icon-16.png",
+      "16": "assets/icons//icon-16.png",
       "32": "assets/icons/icon-32.png",
       "48": "assets/icons/icon-48.png",
       "128": "assets/icons/icon-128.png"
@@ -49,6 +51,13 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["lib/dictionary.json"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   
   "commands": {
     "save-selection": {

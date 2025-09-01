@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生词本 - 划词翻译+间隔复习</title>
+    <title>生词本 - 划词保存+间隔复习</title>
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -40,22 +40,26 @@
                     <div class="review-card hidden" id="review-card">
                         <div class="card-front">
                             <div class="word-display">
-                                <span class="word-term" id="word-term"></span>
-                                <span class="word-lang" id="word-lang"></span>
-                            </div>
-                            <div class="word-meta">
-                                <span class="word-source" id="word-source"></span>
+                                <!-- 动态生成的单词头部区域，包含发音按钮 -->
                             </div>
                         </div>
 
                         <div class="card-back hidden" id="card-back">
-                            <div class="word-context">
-                                <h4>上下文</h4>
-                                <p id="word-context"></p>
-                            </div>
-                            <div class="word-note" id="word-note-container">
-                                <h4>备注</h4>
+                            <div class="word-note-container" id="word-note-container">
+                                <h4>翻译</h4>
                                 <p id="word-note"></p>
+                            </div>
+                            <div class="word-definition-container" id="word-definition-container">
+                                <h4>释义</h4>
+                                <p id="word-definition"></p>
+                            </div>
+                            <div class="word-examples-container" id="word-examples-container">
+                                <h4>例句</h4>
+                                <div id="word-examples"></div>
+                            </div>
+                            <div class="word-phonetic-container" id="word-phonetic-container">
+                                <h4>音标</h4>
+                                <p id="word-phonetic"></p>
                             </div>
                         </div>
 
@@ -94,7 +98,7 @@
             </div>
 
             <div class="words-list" id="words-list">
-                <!-- 单词列表将通过 JS 动态生成 -->
+                <!-- 单词列表将通过 JS 动态生成，每个单词项都包含发音按钮 -->
             </div>
 
             <div class="empty-state hidden" id="empty-words">

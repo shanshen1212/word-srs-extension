@@ -1,4 +1,6 @@
 // 简化的 content script - 只有基础功能，不会报错
+// === 一键开关：改成 false 就彻底禁用划词气泡 ===
+const ENABLE_INLINE_POPUP = false;
 
 class SimpleWordBubble {
   constructor() {
@@ -8,8 +10,10 @@ class SimpleWordBubble {
   }
   
   init() {
-    document.addEventListener('mouseup', this.handleSelection.bind(this));
+  if (!ENABLE_INLINE_POPUP) return;         // 保险
+  document.addEventListener('mouseup', this.handleSelection.bind(this));
   }
+
   
   handleSelection() {
     const selection = window.getSelection();
@@ -40,14 +44,26 @@ class SimpleWordBubble {
     
     bubble.innerHTML = `
       <div style="margin-bottom: 5px;">${this.escapeHtml(text)}</div>
-      <button id="save-word-btn" style="
-        background: #4CAF50;
-        color: white;
-        border: none;
-        padding: 4px 8px;
-        border-radius: 3px;
-        cursor: pointer;
-      ">保存</button>
+      <div style="display: flex; gap: 5px;">
+        <button id="save-word-btn" style="
+          background: #4CAF50;
+          color: white;
+          border: none;
+          padding: 4px 8px;
+          border-radius: 3px;
+          cursor: pointer;
+          flex: 1;
+        ">保存</button>
+        <button id="speak-word-btn" style="
+          background: #2196F3;
+          color: white;
+          border: none;
+          padding: 4px 8px;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 14px;
+        " title="发音">🔊</button>
+      </div>
     `;
     
     // 定位
@@ -58,15 +74,81 @@ class SimpleWordBubble {
     document.body.appendChild(bubble);
     this.bubble = bubble;
     
-    // 绑定事件
+    // 绑定保存事件
     bubble.querySelector('#save-word-btn').onclick = () => {
       this.saveWord(text);
+    };
+    
+    // 绑定发音事件
+    bubble.querySelector('#speak-word-btn').onclick = () => {
+      this.speakText(text);
     };
     
     // 点击外部关闭
     setTimeout(() => {
       document.addEventListener('click', this.handleDocumentClick.bind(this));
     }, 100);
+  }
+  
+  speakText(text) {
+    if (!('speechSynthesis' in window)) {
+      this.showNotification('您的浏览器不支持语音功能');
+      return;
+    }
+    
+    try {
+      // 停止当前播放
+      speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // 检测语言
+      const hasChineseChars = /[\u4e00-\u9fff]/.test(text);
+      utterance.lang = hasChineseChars ? 'zh-CN' : 'en-US';
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      // 获取合适的语音
+      const voices = speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        const preferredVoice = voices.find(voice => 
+          voice.lang.startsWith(utterance.lang.split('-')[0]) && voice.localService
+        );
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+      }
+      
+      // 视觉反馈
+      const speakBtn = this.bubble?.querySelector('#speak-word-btn');
+      if (speakBtn) {
+        speakBtn.style.background = '#ff9800';
+        speakBtn.disabled = true;
+      }
+      
+      utterance.onend = () => {
+        if (speakBtn) {
+          speakBtn.style.background = '#2196F3';
+          speakBtn.disabled = false;
+        }
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('Speech error:', event.error);
+        if (speakBtn) {
+          speakBtn.style.background = '#2196F3';
+          speakBtn.disabled = false;
+        }
+        this.showNotification('发音失败');
+      };
+      
+      speechSynthesis.speak(utterance);
+      
+    } catch (error) {
+      console.error('Speech synthesis error:', error);
+      this.showNotification('发音失败');
+    }
   }
   
   async saveWord(text) {
@@ -169,5 +251,16 @@ class SimpleWordBubble {
   }
 }
 
+if (!ENABLE_INLINE_POPUP) {
+  SimpleWordBubble.prototype.init = function(){};
+  SimpleWordBubble.prototype.handleSelection = function(){};
+  SimpleWordBubble.prototype.showBubble = function(){};
+  SimpleWordBubble.prototype.speakText = function(){};
+  SimpleWordBubble.prototype.saveWord = function(){};
+  SimpleWordBubble.prototype.handleDocumentClick = function(){};
+  SimpleWordBubble.prototype.removeBubble = function(){};
+}
+
 // 启动
-new SimpleWordBubble();
+// 启动（关掉时不初始化）
+if (ENABLE_INLINE_POPUP) new SimpleWordBubble();
