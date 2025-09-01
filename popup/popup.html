@@ -3,8 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生词本 - 划词保存+间隔复习</title>
+    <title>生词本 - 划词翻译+间隔复习</title>
     <link rel="stylesheet" href="popup.css">
+    <style>
+    /* 详情页样式 */
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: white;
+      border-bottom: 1px solid #e9ecef;
+      margin-bottom: 16px;
+    }
+    
+    .detail-back-btn {
+      background: none;
+      border: none;
+      color: #4CAF50;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+    
+    .detail-back-btn:hover {
+      background: #f0f8f0;
+    }
+    
+    .detail-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #212529;
+      margin: 0;
+    }
+    
+    .detail-header .speech-btn {
+      font-size: 16px;
+      min-width: 32px;
+      height: 32px;
+    }
+    
+    /* 详情卡片样式调整 */
+    #detail-card {
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    #detail-card .card-back {
+      display: block; /* 详情页默认显示答案 */
+      border-top: 1px solid #e9ecef;
+      margin-top: 20px;
+      padding-top: 16px;
+    }
+    
+    #detail-card .word-display {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    </style>
 </head>
 <body>
     <div class="popup-container">
@@ -105,6 +163,48 @@
                 <div class="empty-icon">📝</div>
                 <h3>还没有保存任何单词</h3>
                 <p>在网页上选择文字，点击保存按钮开始构建你的生词本。</p>
+            </div>
+        </div>
+
+        <!-- 单词详情视图 -->
+        <div class="view hidden" id="detail-view">
+            <div class="review-container">
+                <!-- 详情头部 -->
+                <div class="detail-header">
+                    <button class="detail-back-btn" id="detail-back">← 返回</button>
+                    <h3 class="detail-title">单词详情</h3>
+                    <button class="speech-btn" id="detail-speak" title="点击发音">🔊</button>
+                </div>
+
+                <!-- 详情卡片 -->
+                <div class="card-container">
+                    <div class="review-card" id="detail-card">
+                        <div class="card-front">
+                            <div class="word-display" id="detail-word-display">
+                                <!-- 动态生成的单词头部区域 -->
+                            </div>
+                        </div>
+
+                        <div class="card-back" id="detail-card-back">
+                            <div class="word-note-container" id="detail-word-note-container">
+                                <h4>翻译</h4>
+                                <p id="detail-word-note"></p>
+                            </div>
+                            <div class="word-definition-container" id="detail-word-definition-container">
+                                <h4>释义</h4>
+                                <p id="detail-word-definition"></p>
+                            </div>
+                            <div class="word-examples-container" id="detail-word-examples-container">
+                                <h4>例句</h4>
+                                <div id="detail-word-examples"></div>
+                            </div>
+                            <div class="word-phonetic-container" id="detail-word-phonetic-container">
+                                <h4>音标</h4>
+                                <p id="detail-word-phonetic"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -585,6 +585,63 @@ body {
   color: white;
 }
 
+/* 详情页样式 */
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 16px;
+}
+
+.detail-back-btn {
+  background: none;
+  border: none;
+  color: #4CAF50;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.detail-back-btn:hover {
+  background: #f0f8f0;
+}
+
+.detail-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+}
+
+.detail-header .speech-btn {
+  font-size: 16px;
+  min-width: 32px;
+  height: 32px;
+}
+
+/* 详情卡片样式调整 */
+#detail-card {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+#detail-card .card-back {
+  display: block; /* 详情页默认显示答案 */
+  border-top: 1px solid #e9ecef;
+  margin-top: 20px;
+  padding-top: 16px;
+}
+
+#detail-card .word-display {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
 /* 工具类 */
 .hidden {
   display: none !important;

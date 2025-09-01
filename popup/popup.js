@@ -1,5 +1,5 @@
-// popup script: review flow + words management + speech synthesis
-// 管理复习状态、单词列表、用户交互和发音功能
+// popup script: review flow + words management + speech synthesis + word detail view
+// 管理复习状态、单词列表、用户交互、发音功能和单词详情页
 
 console.log('popup.js 开始加载');
 
@@ -124,6 +124,8 @@ class PopupApp {
     this.allWords = [];
     this.filteredWords = [];
     this.isShowingAnswer = false;
+    this.currentDetailWord = null; // 当前详情页显示的单词
+    this.wordsListScrollPosition = 0; // 保存单词列表滚动位置
     
     // 初始化发音管理器
     this.speechManager = new SpeechManager();
@@ -196,6 +198,31 @@ class PopupApp {
           searchInput.value = '';
           this.filterWords('');
           searchInput.focus();
+        }
+      });
+    }
+    
+    // 详情页事件
+    const detailBackBtn = document.getElementById('detail-back');
+    const detailSpeakBtn = document.getElementById('detail-speak');
+    
+    if (detailBackBtn) {
+      detailBackBtn.addEventListener('click', () => {
+        this.switchView('words');
+        // 恢复滚动位置
+        setTimeout(() => {
+          const wordsList = document.getElementById('words-list');
+          if (wordsList) {
+            wordsList.scrollTop = this.wordsListScrollPosition;
+          }
+        }, 10);
+      });
+    }
+    
+    if (detailSpeakBtn) {
+      detailSpeakBtn.addEventListener('click', async () => {
+        if (this.currentDetailWord) {
+          await this.speakWord(this.currentDetailWord, detailSpeakBtn);
         }
       });
     }
@@ -439,6 +466,20 @@ class PopupApp {
     }
   }
   
+  // 更新详情页单词头部显示
+  updateDetailWordHeader(word) {
+    const wordDisplay = document.getElementById('detail-word-display');
+    if (!wordDisplay) return;
+    
+    // 清空并重新构建
+    wordDisplay.innerHTML = `
+      <div class="word-header">
+        <span class="word-term">${this.escapeHtml(word.term)}</span>
+      </div>
+      <span class="word-lang">${word.lang.toUpperCase()}</span>
+    `;
+  }
+  
   // 发音单词的核心方法
   async speakWord(word, buttonElement = null) {
     if (!this.speechManager.isSupported) {
@@ -538,6 +579,77 @@ class PopupApp {
     // 视图特定逻辑
     if (view === 'words') {
       this.renderWordsList();
+    } else if (view === 'detail') {
+      // 详情页不需要特殊处理，因为在 showWordDetail 中已经处理
+    }
+  }
+  
+  // 显示单词详情页
+  showWordDetail(word) {
+    // 保存当前滚动位置
+    const wordsList = document.getElementById('words-list');
+    if (wordsList) {
+      this.wordsListScrollPosition = wordsList.scrollTop;
+    }
+    
+    this.currentDetailWord = word;
+    this.switchView('detail');
+    this.updateDetailCard(word);
+  }
+  
+  // 更新详情卡片内容
+  updateDetailCard(word) {
+    if (!word) return;
+    
+    // 更新头部显示
+    this.updateDetailWordHeader(word);
+    
+    // 更新翻译
+    const noteContainer = document.getElementById('detail-word-note-container');
+    const noteElement = document.getElementById('detail-word-note');
+    if (word.note && word.note.trim()) {
+      if (noteElement) noteElement.textContent = word.note;
+      this.showElement(noteContainer);
+    } else {
+      this.hideElement(noteContainer);
+    }
+    
+    // 更新释义
+    const definitionContainer = document.getElementById('detail-word-definition-container');
+    const definitionElement = document.getElementById('detail-word-definition');
+    if (word.definition && word.definition.trim()) {
+      if (definitionElement) definitionElement.textContent = word.definition;
+      this.showElement(definitionContainer);
+    } else {
+      this.hideElement(definitionContainer);
+    }
+    
+    // 更新例句
+    const examplesContainer = document.getElementById('detail-word-examples-container');
+    const examplesElement = document.getElementById('detail-word-examples');
+    if (word.examples && word.examples.length > 0) {
+      if (examplesElement) {
+        examplesElement.innerHTML = '';
+        word.examples.forEach(example => {
+          const exampleDiv = document.createElement('div');
+          exampleDiv.className = 'example-item';
+          exampleDiv.textContent = example;
+          examplesElement.appendChild(exampleDiv);
+        });
+      }
+      this.showElement(examplesContainer);
+    } else {
+      this.hideElement(examplesContainer);
+    }
+    
+    // 更新音标
+    const phoneticContainer = document.getElementById('detail-word-phonetic-container');
+    const phoneticElement = document.getElementById('detail-word-phonetic');
+    if (word.phonetic && word.phonetic.trim()) {
+      if (phoneticElement) phoneticElement.textContent = word.phonetic;
+      this.showElement(phoneticContainer);
+    } else {
+      this.hideElement(phoneticContainer);
     }
   }
   
@@ -606,6 +718,7 @@ class PopupApp {
   createWordElement(word) {
     const div = document.createElement('div');
     div.className = 'word-item';
+    div.dataset.id = word.id; // 添加 data-id 属性
     
     // 构建例句显示
     let examplesHtml = '';
@@ -664,6 +777,15 @@ class PopupApp {
         this.deleteWord(word);
       });
     }
+    
+    // 绑定单词项点击事件（显示详情页）
+    div.addEventListener('click', (e) => {
+      // 检查点击的目标是否是按钮或按钮内的元素
+      if (e.target.closest('.word-action-btn') || e.target.closest('.speech-btn')) {
+        return; // 如果点击的是按钮，不执行详情页逻辑
+      }
+      this.showWordDetail(word);
+    });
     
     return div;
   }
