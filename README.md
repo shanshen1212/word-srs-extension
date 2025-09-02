@@ -4,10 +4,14 @@
 
 # Word SRS — Minimal English Vocabulary Saver & Reviewer
 
-> **Highlight**  
-> - **Focus:** Save **English words** from pages and review them with **SRS**.  
-> - **No selection popup:** The extension **does not** show cluttering popups.  
-> - **Simple learning curve:** Right-click to save → review when due. That’s it.
+## Overview
+**Word SRS** is a lightweight Chrome extension that lets you capture **English words** on the web and review them with **Spaced Repetition (SRS)**.  
+It’s designed as a **companion** to full-featured vocabulary apps: save terms while browsing, then **export** to CSV/JSON and import into your main tool.
+
+**Highlights**
+- **Focused scope:** select → save English words → SRS review
+- **No selection popup:** no intrusive bubbles on pages
+- **Low learning curve:** right-click to save; review due cards in the popup
 
 <p align="center">
   <img src="assets/screenshot-review.png" alt="Review card screenshot" width="600"/>
@@ -20,33 +24,24 @@
 ---
 
 ## Features
-
-- **Spaced Repetition (SRS) review**
-  - Each card shows **Translation**, **English definition**, **Examples**, and **Pronunciation** (TTS).
-- **Built-in offline dictionary (20,000 common words)**
-  - Instant lookup without Internet. Falls back to online sources only when needed.
-- **One-click save**
-  - Select text → **Right-click → “Save to Wordbook”**.
-- **Word details**
-  - From **All Words** list, click a word to open a **detail card page** (same layout as review).
-- **Export**
-  - Export your collection to **CSV** or **JSON** (for backup or import into other apps).
-- **Lightweight**
-  - No popups while browsing; UI is only in the extension popup.
+- **SRS review workflow** (Again / Hard / Good / Easy)
+- **Per-word details:** Translation, **English definition**, example sentence(s), **pronunciation** (TTS)
+- **Built-in offline dictionary** of **20,000 common words**
+- **Mastery levels (auto-tagging)**  
+  Each word shows a colored **mastery tag** in *All Words* (Unknown / Learning / Familiar / Mastered).  
+  The tag updates automatically from your review outcomes over time.
+- **One-click “Clear All”**  
+  Clear the whole wordbook from *All Words* (with confirmation). Tip: **export first**.
+- **Export** to **CSV** or **JSON** for backup **and import into other apps**
+- **Clean UX:** all UI lives in the extension popup; pages stay untouched
 
 ---
 
 ## Quick Start
-
-1. **Install (unpacked)**
-   - `chrome://extensions` → enable **Developer mode** → **Load unpacked** → select the project folder.
-2. **Save a word**
-   - Select an English word on any page → Right-click → **Save to Wordbook**.
-3. **Review**
-   - Click the extension icon → **Today’s Review** to start.
-4. **Export**
-   - Open **All Words** → **Export JSON** / **Export CSV**.
-
+1. `chrome://extensions` → enable **Developer mode** → **Load unpacked** → choose this folder.
+2. Select a word on any page → right-click → **Save to Wordbook**.
+3. Click the extension icon → **Today’s Review** to start.
+4. In **All Words**, click **Export JSON/CSV** (or **Clear All** after exporting).
 ---
 
 ## Permissions
@@ -74,10 +69,14 @@ Please keep the original licenses in your distributions.
 
 # Word SRS — 极简英文生词保存与复习扩展（中文）
 
-> **亮点**  
-> - **只做一件事：** 在网页中保存**英文单词**并用 **SRS** 复习。  
-> - **不显示划词弹窗：** 安装后**不弹窗、不打扰**。  
-> - **学习曲线简单：** 右键保存 → 到弹层里复习。
+## 概述
+**Word SRS** 是一个**轻量级**的 Chrome 扩展：在网页上**保存英文单词**，用 **SRS** 复习。  
+它更像是你主力记忆软件的**拓展**：浏览时随手收集，之后**导出 CSV/JSON** 导入到其他应用继续巩固。
+
+**亮点**
+- **专注一件事：** 划词保存 → SRS 复习
+- **不打扰：** 不在页面上弹气泡
+- **上手快：** 右键保存即可，复习在扩展弹层完成
 
 <p align="center">
 <img src="assets/screenshot-review.png" alt="复习卡片截图" width="600"/>
@@ -90,26 +89,25 @@ Please keep the original licenses in your distributions.
 ---
 
 ## 功能
-
-- **SRS 记忆**：每张卡片包含 **翻译、英文释义、例句、发音**（TTS）
-- **内置 2 万常用词离线词典**：无网也能秒查，必要时才走在线兜底
-- **一键保存**：选中单词 → 右键 → **保存到生词本**
-- **单词详情页**：在 **全部单词** 列表里点击词条，进入与复习页一致的**详情卡**
-- **导出**：可导出为 **CSV** 与 **JSON**，方便备份或导入其他记忆软件
-- **轻量干净**：浏览网页不打扰，所有交互都在扩展弹层中完成
+- **SRS 记忆流程**（Again / Hard / Good / Easy）
+- **单词详情**：翻译、**英文释义**、例句、**发音**（TTS）
+- **内置离线词典**：收录 **2 万常用词**
+- **掌握度分级（自动标签）**  
+  在“全部单词”列表为每个词显示**掌握度**：**陌生 / 学习中 / 熟悉 / 已掌握**。  
+  标签会随你的复习点击自动更新。
+- **一键清空**  
+  在“全部单词”页支持**清空全部单词**（带确认提示，**建议先导出**）。
+- **导出**  
+  支持导出为 **CSV** / **JSON**，便于备份或导入其他记忆软件。
+- **干净体验**：所有交互在扩展弹层中完成，不影响网页
 
 ---
 
 ## 快速上手
-
-1. **安装（加载已解压）**  
- `chrome://extensions` → 打开**开发者模式** → **加载已解压的扩展程序** → 选择项目目录
-2. **保存单词**  
- 网页中选中英文 → 右键 **保存到生词本**
-3. **开始复习**  
- 点击扩展图标 → **今日复习**
-4. **导出**  
- 打开 **全部单词** → 点击 **导出 JSON / 导出 CSV**
+1. 打开 `chrome://extensions` → 开启**开发者模式** → **加载已解压的扩展程序**。
+2. 网页中选中单词 → 右键 **保存到生词本**。
+3. 点击扩展图标 → **今日复习**。
+4. 在 **全部单词** 中 **导出 JSON/CSV**（或清空全部）。
 
 ---
 
