@@ -13,6 +13,10 @@
   <img src="assets/screenshot-review.png" alt="Review card screenshot" width="600"/>
 </p>
 
+<p align="center">
+  <img src="assets/screenshot-word.png" alt="Word list screenshot" width="600"/>
+</p>
+
 ---
 
 ## Features
@@ -77,6 +81,10 @@ Please keep the original licenses in your distributions.
 
 <p align="center">
 <img src="assets/screenshot-review.png" alt="复习卡片截图" width="600"/>
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-word.png" alt="单词表截图" width="600"/>
 </p>
 
 ---

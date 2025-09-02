@@ -474,6 +474,28 @@ body {
   color: #6c757d;
 }
 
+/* Mastery Filter Dropdown */
+.filter-container {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
+  cursor: pointer;
+  outline: none;
+}
+
+.filter-select:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
 /* 导出功能样式 */
 .export-container {
   position: relative;
@@ -623,6 +645,68 @@ body {
   color: #28a745;
   font-weight: 500;
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* MASTERY TAG STYLES */
+.mastery-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  border: 1px solid;
+  transition: all 0.2s ease;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.mastery-tag.mastery-beginner {
+  background: #fff5f5;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.mastery-tag.mastery-beginner:hover {
+  background: #dc3545;
+  color: white;
+}
+
+.mastery-tag.mastery-learning {
+  background: #fff8f0;
+  border-color: #fd7e14;
+  color: #fd7e14;
+}
+
+.mastery-tag.mastery-learning:hover {
+  background: #fd7e14;
+  color: white;
+}
+
+.mastery-tag.mastery-known {
+  background: #f8fff9;
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.mastery-tag.mastery-known:hover {
+  background: #28a745;
+  color: white;
+}
+
+.mastery-tag.mastery-mastered {
+  background: #f0f9ff;
+  border-color: #17a2b8;
+  color: #17a2b8;
+}
+
+.mastery-tag.mastery-mastered:hover {
+  background: #17a2b8;
+  color: white;
 }
 
 .word-item-examples {

@@ -1,5 +1,5 @@
-// popup script: review flow + words management + speech synthesis + word detail view
-// 管理复习状态、单词列表、用户交互、发音功能和单词详情页
+// popup script: review flow + words management + speech synthesis + word detail view + mastery tracking
+// 管理复习状态、单词列表、用户交互、发音功能、单词详情页和掌握度追踪
 
 console.log('popup.js 开始加载');
 
@@ -126,6 +126,7 @@ class PopupApp {
     this.isShowingAnswer = false;
     this.currentDetailWord = null; // 当前详情页显示的单词
     this.wordsListScrollPosition = 0; // 保存单词列表滚动位置
+    this.currentMasteryFilter = ''; // 当前掌握度筛选
     
     // 初始化发音管理器
     this.speechManager = new SpeechManager();
@@ -148,6 +149,23 @@ class PopupApp {
     } catch (error) {
       console.error('PopupApp init 失败:', error);
     }
+  }
+
+  // Mastery helper methods
+  getMasteryTagClass(tag) {
+    const tagClassMap = {
+      '陌生': 'mastery-beginner',
+      '学习中': 'mastery-learning', 
+      '熟悉': 'mastery-known',
+      '已掌握': 'mastery-mastered'
+    };
+    return tagClassMap[tag] || 'mastery-beginner';
+  }
+  
+  getMasteryTooltip(word) {
+    const stats = word.stats || { again: 0, hard: 0, good: 0, easy: 0 };
+    const score = word.masteryScore || 0;
+    return `Again: ${stats.again} • Hard: ${stats.hard} • Good: ${stats.good} • Easy: ${stats.easy} • Score: ${score}`;
   }
   
   // 清空全部单词功能
@@ -244,17 +262,19 @@ class PopupApp {
         return;
       }
       
-      // CSV头部字段
+      // CSV头部字段 (including mastery fields)
       const headers = [
         'id', 'term', 'lang', 'note', 'definition', 'phonetic', 
         'examples', 'context', 'sourceUrl', 'addedAt', 'nextReview', 
-        'interval', 'ease', 'reps', 'lapses', 'tags'
+        'interval', 'ease', 'reps', 'lapses', 'tags',
+        'masteryTag', 'stats.again', 'stats.hard', 'stats.good', 'stats.easy', 'masteryScore'
       ];
       
       // 构建CSV内容
       const csvRows = [headers.join(',')];
       
       this.allWords.forEach(word => {
+        const stats = word.stats || { again: 0, hard: 0, good: 0, easy: 0 };
         const row = [
           this.escapeCsvField(word.id || ''),
           this.escapeCsvField(word.term || ''),
@@ -271,7 +291,13 @@ class PopupApp {
           word.ease || 2.5,
           word.reps || 0,
           word.lapses || 0,
-          this.escapeCsvField(this.arrayToString(word.tags))
+          this.escapeCsvField(this.arrayToString(word.tags)),
+          this.escapeCsvField(word.masteryTag || '陌生'),
+          stats.again || 0,
+          stats.hard || 0,
+          stats.good || 0,
+          stats.easy || 0,
+          word.masteryScore || 0
         ];
         csvRows.push(row.join(','));
       });
@@ -380,7 +406,7 @@ class PopupApp {
     
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        this.filterWords(e.target.value);
+        this.filterWords();
       });
     }
     
@@ -388,9 +414,18 @@ class PopupApp {
       searchClear.addEventListener('click', () => {
         if (searchInput) {
           searchInput.value = '';
-          this.filterWords('');
+          this.filterWords();
           searchInput.focus();
         }
+      });
+    }
+    
+    // 掌握度筛选事件
+    const masteryFilter = document.getElementById('mastery-filter');
+    if (masteryFilter) {
+      masteryFilter.addEventListener('change', (e) => {
+        this.currentMasteryFilter = e.target.value;
+        this.filterWords();
       });
     }
     
@@ -887,17 +922,24 @@ class PopupApp {
     }
   }
   
-  filterWords(query) {
-    const lowerQuery = query.toLowerCase().trim();
+  // 过滤单词（支持搜索和掌握度筛选）
+  filterWords() {
+    const searchInput = document.getElementById('search-input');
+    const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const masteryFilter = this.currentMasteryFilter;
     
-    if (!lowerQuery) {
-      this.filteredWords = [...this.allWords];
-    } else {
-      this.filteredWords = this.allWords.filter(word => 
-        word.term.toLowerCase().includes(lowerQuery) ||
-        (word.note && word.note.toLowerCase().includes(lowerQuery))
-      );
-    }
+    this.filteredWords = this.allWords.filter(word => {
+      // 搜索过滤
+      const matchesSearch = !searchQuery || 
+        word.term.toLowerCase().includes(searchQuery) ||
+        (word.note && word.note.toLowerCase().includes(searchQuery));
+      
+      // 掌握度过滤
+      const matchesMastery = !masteryFilter || 
+        (word.masteryTag && word.masteryTag === masteryFilter);
+      
+      return matchesSearch && matchesMastery;
+    });
     
     this.updateWordsView();
   }
@@ -954,6 +996,11 @@ class PopupApp {
     div.className = 'word-item';
     div.dataset.id = word.id; // 添加 data-id 属性
     
+    // 确保单词有掌握度标签（向后兼容）
+    const masteryTag = word.masteryTag || '陌生';
+    const masteryClass = this.getMasteryTagClass(masteryTag);
+    const masteryTooltip = this.getMasteryTooltip(word);
+    
     // 构建例句显示
     let examplesHtml = '';
     if (word.examples && word.examples.length > 0) {
@@ -974,7 +1021,10 @@ class PopupApp {
           <span class="word-item-lang">${word.lang.toUpperCase()}</span>
         </div>
       </div>
-      <div class="word-item-translation">${this.escapeHtml(word.note || '暂无翻译')}</div>
+      <div class="word-item-translation">
+        <span>${this.escapeHtml(word.note || '暂无翻译')}</span>
+        <span class="mastery-tag ${masteryClass}" title="${masteryTooltip}">${masteryTag}</span>
+      </div>
       ${examplesHtml}
       <div class="word-item-meta">
         <span class="word-item-date">${this.formatDate(word.addedAt)}</span>
@@ -1040,8 +1090,7 @@ class PopupApp {
           const index = this.allWords.findIndex(w => w.id === word.id);
           if (index !== -1) {
             this.allWords[index] = updatedWord;
-            const searchInput = document.getElementById('search-input');
-            this.filterWords(searchInput ? searchInput.value : '');
+            this.filterWords();
           }
           this.showSuccess('备注已更新');
         } else {
@@ -1068,8 +1117,7 @@ class PopupApp {
       if (response.success) {
         // 从本地数据中移除
         this.allWords = this.allWords.filter(w => w.id !== word.id);
-        const searchInput = document.getElementById('search-input');
-        this.filterWords(searchInput ? searchInput.value : '');
+        this.filterWords();
         
         // 如果删除的是当前复习队列中的词，也需要更新复习队列
         this.reviewQueue = this.reviewQueue.filter(w => w.id !== word.id);

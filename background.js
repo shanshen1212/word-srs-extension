@@ -1,7 +1,14 @@
 console.log('Background script starting...');
 
-// WordManager class with all functionality
+// WordManager class with all functionality + Mastery Tracking
 class WordManager {
+  // Mastery calculation constants
+  static MASTERY_THRESHOLDS = {
+    t1: 0,    // threshold for 陌生 -> 学习中
+    t2: 3,    // threshold for 学习中 -> 熟悉  
+    t3: 7     // threshold for 熟悉 -> 已掌握
+  };
+
   // Load dictionary from local file
   static async loadBuiltinDictionary() {
     try {
@@ -21,6 +28,72 @@ class WordManager {
       console.error('加载本地词典失败:', error);
       return {};
     }
+  }
+
+  // Ensure word has stats and mastery fields with defaults
+  static ensureStats(word) {
+    const wordWithStats = { ...word };
+    
+    // Initialize stats if missing
+    if (!wordWithStats.stats) {
+      wordWithStats.stats = {
+        again: 0,
+        hard: 0,
+        good: 0,
+        easy: 0
+      };
+    } else {
+      // Ensure all stat fields exist
+      wordWithStats.stats = {
+        again: wordWithStats.stats.again || 0,
+        hard: wordWithStats.stats.hard || 0,
+        good: wordWithStats.stats.good || 0,
+        easy: wordWithStats.stats.easy || 0
+      };
+    }
+    
+    // Calculate and set mastery fields if missing
+    if (typeof wordWithStats.masteryScore === 'undefined') {
+      wordWithStats.masteryScore = this.computeMasteryScore(wordWithStats.stats);
+    }
+    
+    if (!wordWithStats.masteryTag) {
+      wordWithStats.masteryTag = this.mapScoreToTag(
+        wordWithStats.masteryScore, 
+        wordWithStats.reps || 0, 
+        wordWithStats.interval || 0
+      );
+    }
+    
+    return wordWithStats;
+  }
+  
+  // Compute mastery score based on review stats
+  static computeMasteryScore(stats) {
+    if (!stats) return 0;
+    return (2 * (stats.easy || 0)) + (1 * (stats.good || 0)) - (1 * (stats.hard || 0)) - (2 * (stats.again || 0));
+  }
+  
+  // Map score to mastery tag based on thresholds
+  static mapScoreToTag(score, reps, interval) {
+    if (score <= this.MASTERY_THRESHOLDS.t1 || reps < 1) {
+      return "陌生";
+    }
+    
+    if (score <= this.MASTERY_THRESHOLDS.t2) {
+      return "学习中";
+    }
+    
+    if (score <= this.MASTERY_THRESHOLDS.t3) {
+      return "熟悉";
+    }
+    
+    // 已掌握: score >= 8 AND reps >= 3 AND interval >= 7
+    if (score >= 8 && reps >= 3 && interval >= 7) {
+      return "已掌握";
+    }
+    
+    return "熟悉"; // fallback for high scores but not meeting mastery criteria
   }
 
   static async translateText(text, fromLang = 'en', toLang = 'zh') {
@@ -167,6 +240,8 @@ class WordManager {
         examples: translationInfo ? translationInfo.examples : words[existingIndex].examples,
         phonetic: translationInfo ? translationInfo.phonetic : words[existingIndex].phonetic
       };
+      // Ensure mastery fields for existing word
+      words[existingIndex] = this.ensureStats(words[existingIndex]);
     } else {
       const newWord = {
         id: `${normalizedTerm}_${wordData.lang}_${Date.now()}`,
@@ -186,7 +261,9 @@ class WordManager {
         phonetic: translationInfo ? translationInfo.phonetic : '',
         tags: wordData.tags || []
       };
-      words.unshift(newWord);
+      // Initialize mastery tracking for new word
+      const wordWithStats = this.ensureStats(newWord);
+      words.unshift(wordWithStats);
     }
     
     await chrome.storage.local.set({ words });
@@ -209,6 +286,7 @@ class WordManager {
   static reviewWord(word, quality) {
     const newWord = { ...word };
     
+    // Update SRS algorithm
     newWord.ease = Math.max(1.3, 
       newWord.ease + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
     );
@@ -230,6 +308,27 @@ class WordManager {
     
     newWord.nextReview = Date.now() + newWord.interval * 24 * 60 * 60 * 1000;
     
+    // UPDATE MASTERY TRACKING
+    // Ensure stats exist
+    if (!newWord.stats) {
+      newWord.stats = { again: 0, hard: 0, good: 0, easy: 0 };
+    }
+    
+    // Update stats based on quality
+    if (quality < 3) {
+      newWord.stats.again++;
+    } else if (quality === 3) {
+      newWord.stats.hard++;
+    } else if (quality === 4) {
+      newWord.stats.good++;
+    } else if (quality === 5) {
+      newWord.stats.easy++;
+    }
+    
+    // Recalculate mastery score and tag
+    newWord.masteryScore = this.computeMasteryScore(newWord.stats);
+    newWord.masteryTag = this.mapScoreToTag(newWord.masteryScore, newWord.reps, newWord.interval);
+    
     return newWord;
   }
   
@@ -240,6 +339,36 @@ class WordManager {
       words[index] = updatedWord;
       await chrome.storage.local.set({ words });
       this.updateBadge();
+    }
+  }
+
+  // One-time migration for existing words (called on extension startup)
+  static async migrateExistingWords() {
+    try {
+      const { words = [], migrationCompleted } = await chrome.storage.local.get(['words', 'migrationCompleted']);
+      
+      if (migrationCompleted || words.length === 0) {
+        return; // Already migrated or no words to migrate
+      }
+      
+      let migrationNeeded = false;
+      const migratedWords = words.map(word => {
+        if (!word.stats || typeof word.masteryScore === 'undefined' || !word.masteryTag) {
+          migrationNeeded = true;
+          return this.ensureStats(word);
+        }
+        return word;
+      });
+      
+      if (migrationNeeded) {
+        await chrome.storage.local.set({ 
+          words: migratedWords,
+          migrationCompleted: true 
+        });
+        console.log(`Migrated ${words.length} words with mastery tracking`);
+      }
+    } catch (error) {
+      console.error('Migration failed:', error);
     }
   }
 }
@@ -253,6 +382,9 @@ chrome.runtime.onInstalled.addListener(async () => {
     contexts: ['selection']
   });
   chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
+  
+  // Run migration for existing words
+  await WordManager.migrateExistingWords();
 });
 
 // Context menu handler
@@ -292,7 +424,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'GET_ALL_WORDS') {
     chrome.storage.local.get(['words']).then(result => {
       const words = result.words || [];
-      sendResponse({ words: words.sort((a, b) => b.addedAt - a.addedAt) });
+      // Ensure all words have mastery tracking (lazy migration)
+      const wordsWithStats = words.map(word => WordManager.ensureStats(word));
+      sendResponse({ words: wordsWithStats.sort((a, b) => b.addedAt - a.addedAt) });
     });
     return true;
   }
