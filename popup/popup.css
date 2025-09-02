@@ -463,6 +463,12 @@ body {
   align-items: center;
 }
 
+.words-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .words-stats-text {
   font-size: 12px;
   color: #6c757d;
@@ -491,6 +497,33 @@ body {
 
 .export-btn:active {
   transform: translateY(1px);
+}
+
+/* 清空全部按钮样式 */
+.clear-all-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-all-btn:hover {
+  background: #c82333;
+}
+
+.clear-all-btn:active {
+  transform: translateY(1px);
+}
+
+.clear-all-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .export-menu {

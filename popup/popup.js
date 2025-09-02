@@ -16,7 +16,7 @@ class SpeechManager {
       // 监听语音列表变化（某些浏览器需要异步加载）
       speechSynthesis.onvoiceschanged = () => {
         this.loadVoices();
-      };
+      }
     }
   }
   
@@ -149,7 +149,67 @@ class PopupApp {
       console.error('PopupApp init 失败:', error);
     }
   }
-
+  
+  // 清空全部单词功能
+  clearAllWords() {
+    if (!this.allWords.length) {
+      this.showError('没有单词需要清空');
+      return;
+    }
+    
+    // 提示用户先导出
+    const shouldExport = confirm('清空所有单词前建议先导出备份。\n\n是否要先导出？\n点击"确定"导出，点击"取消"跳过导出直接清空。');
+    
+    if (shouldExport) {
+      // 用户选择先导出，导出JSON格式
+      this.exportAsJson();
+      
+      // 延迟执行清空操作，给用户时间保存文件
+      setTimeout(() => {
+        this.confirmAndClearWords();
+      }, 1000);
+    } else {
+      // 用户跳过导出，直接确认清空
+      this.confirmAndClearWords();
+    }
+  }
+  
+  // 确认并执行清空操作
+  async confirmAndClearWords() {
+    const finalConfirm = confirm(`确定要清空所有 ${this.allWords.length} 个单词吗？\n\n此操作不可撤销！`);
+    
+    if (!finalConfirm) {
+      return;
+    }
+    
+    try {
+      // 清空 chrome.storage.local 中的 words 数据
+      await chrome.storage.local.remove(['words']);
+      
+      // 同时清空相关的缓存数据
+      await chrome.storage.local.remove(['translationCache']);
+      
+      // 更新本地数据
+      this.allWords = [];
+      this.filteredWords = [];
+      this.reviewQueue = [];
+      this.currentReviewIndex = 0;
+      this.reviewedCount = 0;
+      
+      // 更新UI
+      this.updateUI();
+      
+      // 更新徽标
+      this.updateBadge();
+      
+      this.showSuccess('已清空所有单词');
+      
+    } catch (error) {
+      console.error('Clear all words failed:', error);
+      this.showError('清空失败: ' + error.message);
+    }
+  }
+  
   // 导出功能实现
   exportAsJson() {
     try {
@@ -175,7 +235,7 @@ class PopupApp {
       this.showError('导出JSON失败: ' + error.message);
     }
   }
-
+  
   // 导出为CSV格式
   exportAsCsv() {
     try {
@@ -255,8 +315,7 @@ class PopupApp {
     
     return str;
   }
-  
-  
+
   // 数组转字符串（用|分隔）
   arrayToString(arr) {
     if (!arr || !Array.isArray(arr)) {
@@ -282,7 +341,7 @@ class PopupApp {
       URL.revokeObjectURL(url);
     }, 100);
   }
-
+  
   bindEvents() {
     console.log('绑定事件开始');
     
@@ -340,6 +399,7 @@ class PopupApp {
     const exportMenu = document.getElementById('export-menu');
     const exportJson = document.getElementById('export-json');
     const exportCsv = document.getElementById('export-csv');
+    const clearAllBtn = document.getElementById('clear-all-btn');
     
     if (exportBtn && exportMenu) {
       exportBtn.addEventListener('click', (e) => {
@@ -366,6 +426,13 @@ class PopupApp {
       exportCsv.addEventListener('click', () => {
         this.exportAsCsv();
         exportMenu.classList.add('hidden');
+      });
+    }
+    
+    // 清空全部功能
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', () => {
+        this.clearAllWords();
       });
     }
     
