@@ -62,7 +62,142 @@
       text-align: center;
       margin-bottom: 16px;
     }
-    </style>
+
+/* === Mint & Sage Base (no dark-green background) ===
+   from your palette:
+   sky  : #A6C5D3
+   deep : #5E872B
+   sage : #97BEA2
+   mint : #BDDBC5
+   gray : #D4D5D9
+*/
+:root{
+  /* 原色 */
+  --sky-300:#A6C5D3;
+  --deep-600:#5E872B;   /* 只用于主按钮/强调 */
+  --deep-700:#4F7423;
+  --sage-400:#8bb095;   /* 卡片底 */
+  --mint-300:#BDDBC5;   /* 页面背景 */
+  --gray-200:#D4D5D9;
+
+  /* 主题映射（不使用白色） */
+  --bg:var(--mint-300);          /* 背景：浅薄荷绿 */
+  --surface:#A7C6AF;             /* 卡片/容器：比背景深一阶的鼠尾草绿 */
+  --surface-2:#A0C0A8;           /* 顶部/次级容器 */
+  --text:#233229;                /* 主文字：深绿灰，保证对比 */
+  --muted:#5D6C63;               /* 次要文字 */
+  --border:#8FB3A0;              /* 低饱和绿边框 */
+  --translation-color: #3b6d5a;  /* 翻译字体 */
+
+  /* 主色与状态 */
+  --brand-600:var(--deep-600);
+  --brand-700:var(--deep-700);
+  --success-500:var(--deep-600); --success-100:#5e872b22;
+  --warn-500:#B1843C;           --warn-100:#b1843c22;
+  --danger-500:#A85A5A;         --danger-100:#a85a5a22;
+  --info-500:var(--sky-300);    --info-100:#a6c5d322;
+}
+
+/* 背景/容器/文字 */
+body{ background:var(--bg); color:var(--text); }
+.popup-container{ background:transparent; }
+.words-header,.review-card,.word-item{
+  background:var(--surface);
+  border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.card-back{ border-top:1px solid var(--border); }
+.word-item:hover,.review-card:hover{
+  box-shadow:0 4px 14px rgba(0,0,0,.10);
+  border-color:#7ea892;
+}
+.word-item-meta,.words-stats-text,.progress-text{ color:var(--muted); }
+
+/* 顶部导航（比卡片再深一点） */
+.nav-bar{ background:var(--surface-2); border-bottom:1px solid var(--border); }
+.nav-btn{ color:var(--muted); }
+.nav-btn:hover{ background:#b7d6c4; }
+.nav-btn.active{ color:#1e2c24; background:#9cc0a8; }
+.nav-btn.active::after{ background:var(--brand-600); }
+.badge{ background:#b2cec0; color:#274232; }
+.nav-btn.active .badge{ background:var(--brand-600); color:#e9f2e6; }
+
+/* 进度条：深绿→天蓝的柔和渐变 */
+.progress-bar{ background:#aacdbd; }
+.progress-fill{ background:linear-gradient(90deg, var(--brand-600), var(--sky-300)); }
+
+/* 主/次按钮（主色只用于按钮等强调） */
+.btn-primary,.show-answer{ background:var(--brand-600); color:#eef6ef; border:none; }
+.btn-primary:hover,.show-answer:hover{ background:var(--brand-700); }
+.word-action-btn{ border:1px solid var(--border); background:#a1c2ad; color:#264234; }
+.word-action-btn:hover{ border-color:#7ea892; color:#1f3328; }
+
+/* 搜索框（浅绿底，不是白） */
+.search-input{
+  border:1px solid var(--border);
+  background:#c9e1d3;
+  color:#233229;
+}
+.search-input::placeholder{ color:#6b7a72; }
+.search-input:focus{
+  border-color:var(--brand-600);
+  box-shadow:0 0 0 2px rgba(94,135,43,.20);
+}
+
+/* 导出/清空/返回/发音 */
+.export-btn{ background:var(--brand-600); color:#eef6ef; }
+.export-btn:hover{ background:var(--brand-700); }
+.clear-all-btn{ border:1px solid var(--danger-500); color:var(--danger-500); background:#c9a9a9; }
+.clear-all-btn:hover{ background:var(--danger-500); color:#f3f6f4; }
+.speech-btn,.detail-back-btn{ color:var(--brand-600); }
+.speech-btn:hover,.detail-back-btn:hover{ background:#b7d6c4; }
+
+/* 掌握度标签 */
+.mastery-tag{ padding:2px 8px; border-radius:999px; font-size:11px; border:1px solid; }
+.mastery-beginner{ background:var(--danger-100); border-color:var(--danger-500); color:#6b2e2e; }
+.mastery-learning{ background:#cbb896; border-color:#b99e67; color:#3e3320; }
+.mastery-known{    background:#a7c8a9; border-color:var(--deep-600); color:#1f3a21; }
+.mastery-mastered{ background:#b7ccd8; border-color:var(--sky-300); color:#2f4552; }
+
+#word-note,
+#detail-word-note{
+  color: var(--translation-color) !important;
+}
+
+#words-list .word-item :is(.word-item-translation,.translation,.word-note,.note){
+  color: var(--translation-color) !important;
+}
+/* #word-definition, #detail-word-definition{
+  color: #2f4e42; 
+  } */
+/* 取消旧顶栏占位（如果还在别处保留 .detail-header，可强制隐藏） */
+.detail-header { display: none !important; }
+
+/* 新的返回区域 */
+.detail-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 0;
+  background: transparent;
+}
+
+/* 让标题行能并排放单词和扬声器 */
+#detail-card .word-header{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+/* 适度放大详情页标题 */
+#detail-card .word-term{
+  font-size: 22px;
+  font-weight: 600;
+}
+
+</style>
+
 </head>
 <body>
     <div class="popup-container">
@@ -89,7 +224,7 @@
                 <div class="card-container" id="card-container">
                     <!-- 空状态 -->
                     <div class="empty-state" id="empty-review">
-                        <div class="empty-icon">📚</div>
+                        <div class="empty-icon">🌳</div>
                         <h3>今日复习已完成！</h3>
                         <p>没有需要复习的单词，继续保持学习节奏。</p>
                     </div>
@@ -134,7 +269,7 @@
 
                     <!-- 复习完成 -->
                     <div class="review-complete hidden" id="review-complete">
-                        <div class="complete-icon">🎉</div>
+                        <div class="complete-icon">🐨</div>
                         <h3>今日复习完成！</h3>
                         <p id="review-summary">复习了 0 个单词</p>
                         <button class="btn-primary" id="continue-learning">继续学习</button>
@@ -150,18 +285,6 @@
                     <input type="text" id="search-input" placeholder="搜索单词..." class="search-input">
                     <button class="search-clear" id="search-clear">×</button>
                 </div>
-                
-                <!-- Mastery Filter Dropdown -->
-                <div class="filter-container">
-                    <select id="mastery-filter" class="filter-select">
-                        <option value="">全部掌握度</option>
-                        <option value="陌生">陌生</option>
-                        <option value="学习中">学习中</option>
-                        <option value="熟悉">熟悉</option>
-                        <option value="已掌握">已掌握</option>
-                    </select>
-                </div>
-                
                 <div class="words-stats-row">
                     <span id="words-stats-text">共 0 个单词</span>
                     <div class="words-actions">
@@ -191,13 +314,6 @@
         <!-- 单词详情视图 -->
         <div class="view hidden" id="detail-view">
             <div class="review-container">
-                <!-- 详情头部 -->
-                <div class="detail-header">
-                    <button class="detail-back-btn" id="detail-back">← 返回</button>
-                    <h3 class="detail-title">单词详情</h3>
-                    <button class="speech-btn" id="detail-speak" title="点击发音">🔊</button>
-                </div>
-
                 <!-- 详情卡片 -->
                 <div class="card-container">
                     <div class="review-card" id="detail-card">
@@ -225,6 +341,9 @@
                                 <p id="detail-word-phonetic"></p>
                             </div>
                         </div>
+                    </div>
+                    </div class="detail-footer">
+                        <button class="detail-back-btn" id="detail-back">返回</button>
                     </div>
                 </div>
             </div>

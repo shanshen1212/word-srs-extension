@@ -744,9 +744,14 @@ class PopupApp {
     wordDisplay.innerHTML = `
       <div class="word-header">
         <span class="word-term">${this.escapeHtml(word.term)}</span>
+        <button class="speech-btn term-speak" title="发音">🔊</button>
       </div>
-      <span class="word-lang">${word.lang.toUpperCase()}</span>
+      <span class="word-lang">${(word.lang || 'en').toUpperCase()}</span>
     `;
+    const btn = wordDisplay.querySelector('.term-speak');
+    if (btn) {
+      btn.addEventListener('click', () => this.speakWord(word, btn));
+    }
   }
   
   // 发音单词的核心方法

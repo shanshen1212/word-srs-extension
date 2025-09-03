@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "划词翻译 + 间隔复习",
+  "name": "Word SRS",
   "version": "1.0.0",
-  "description": "选中单词保存到生词本，使用间隔复习巩固记忆",
+  "description": "Minimal Vocabulary Saver. Select to save English words, review with SRS. Offline 20k dictionary, export CSV/JSON.",
   
   "permissions": [
     "storage",
@@ -32,9 +32,9 @@
   
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "划词翻译 + 间隔复习",
+    "default_title": "Word SRS",
     "default_icon": {
-      "16": "assets/icons//icon-16.png",
+      "16": "assets/icons/icon-16.png",
       "32": "assets/icons/icon-32.png",
       "48": "assets/icons/icon-48.png",
       "128": "assets/icons/icon-128.png"
@@ -65,7 +65,7 @@
         "default": "Ctrl+Shift+S",
         "mac": "Command+Shift+S"
       },
-      "description": "保存选中文本到生词本"
+      "description": "Save Selected Word to Wordlist"
     }
   }
 }
