@@ -67,7 +67,7 @@ Please keep the original licenses in your distributions.
 
 <a id="zh"></a>
 
-# Word SRS — 极简英文生词保存与复习扩展（中文）
+# Word SRS — 极简英文生词保存与复习扩展
 
 ## 概述
 **Word SRS** 是一个**轻量级**的 Chrome 扩展：在网页上**保存英文单词**，用 **SRS** 复习。  
