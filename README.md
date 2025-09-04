@@ -3,7 +3,8 @@
 <a id="en"></a>
 
 # Word SRS — Minimal English Vocabulary Saver & Reviewer
-[Chrome Web Store](https://chromewebstore.google.com/detail/word-srs/oleimdgooblkakpgkekckhdjfamaakne?utm_source=chatgpt.com)
+
+Chrome Web Store Link: (https://chromewebstore.google.com/detail/word-srs/oleimdgooblkakpgkekckhdjfamaakne?utm_source=chatgpt.com)
 
 ## Overview
 **Word SRS** is a lightweight Chrome extension that lets you capture **English words** on the web and review them with **Spaced Repetition (SRS)**.  
