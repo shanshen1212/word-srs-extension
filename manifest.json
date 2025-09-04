@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Word SRS",
-  "version": "1.0.0",
-  "description": "Minimal Vocabulary Saver. Select to save English words, review with SRS. Offline 20k dictionary, export CSV/JSON.",
+  "name": "Word SRS：轻量级生词本",
+  "version": "1.0.1",
+  "description": "轻量级生词本：划词即存 + SRS 复习；内置 2 万离线词库；发音/释义/例句齐全；支持导出 CSV/JSON，便于同步到其他记忆软件",
   
   "permissions": [
     "storage",
